@@ -124,11 +124,12 @@ infrastructure we didn't want. A later draft softened that to a charging-only
 "dock mode."
 
 **Both are gone. The screen sleeps like any phone's, plugged in or not** — with
-one setup caveat that is not optional: **Guided Access disables auto-lock by
-default**, so the session must have
-[Mirror Display Auto-Lock enabled](guided-access.md#1-auto-lock-is-disabled-by-default--this-is-the-big-one)
-or the screen stays lit regardless of anything the app does. Every number in this
-document assumes that setting is on.
+one setup caveat that is not optional: a Guided Access session ignores your
+Auto-Lock setting unless
+[Mirror Display Auto-Lock is enabled](guided-access.md#1-screen-sleep-behaves-differently--and-the-default-is-bad),
+falling back to a 20-minute timeout — and with the side button disabled by
+default you can't lock it manually either. Every number in this document assumes
+both are configured.
  Sanctum
 has no always-on clock, no persistent display, and no `isIdleTimerDisabled`
 anywhere in the codebase. If you want a glanceable clock on a nightstand, that's

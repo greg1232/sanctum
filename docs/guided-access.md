@@ -90,25 +90,33 @@ decent app on an ordinary unsupervised phone, or it can't be developed.
 found by research rather than assumption. Neither is the default, and missing
 either one silently breaks a decision made elsewhere in these docs.
 
-### 1. Auto-lock is disabled by default — this is the big one
+### 1. Screen sleep behaves differently — and the default is bad
 
-**A Guided Access session keeps the screen on indefinitely.** The system
-Auto-Lock setting stops applying the moment the session starts. This has been
-the behavior since iOS 9 and is well documented by kiosk operators, who hit it
-as battery drain on unattended devices.
+*Corrected after research: an earlier draft claimed Guided Access keeps the
+screen on indefinitely. That was iOS 9-era behavior and is no longer true.*
 
-That directly contradicts [the decision to let the screen sleep](power.md#sleep-and-wake--the-screen-sleeps-always)
-and would silently reinstate the always-on profile we removed — roughly **24% of
-the battery per night**, with none of the benefit, since Sanctum wouldn't even be
-drawing a clock.
+What actually happens on modern iOS:
 
-The fix is a setting called **Mirror Display Auto-Lock**, in
-Settings → Accessibility → Guided Access. Turning it on makes the session respect
-the system Auto-Lock. Newer iOS also exposes a **Display Auto-Lock** timeout
-directly in the session's Options sheet.
+- **Mirror Display Auto-Lock OFF** (Settings → Accessibility → Guided Access):
+  the session ignores your system Auto-Lock and uses its own **20-minute**
+  inactivity timeout.
+- **Mirror Display Auto-Lock ON:** the session respects the Auto-Lock setting in
+  Display & Brightness, whatever you've chosen.
 
-**Turn this on. Everything in [power](power.md) assumes it.** Confirm the exact
-name and location on iOS 26 — this has moved between versions.
+So the screen does sleep either way. The problem is *20 minutes*, and it
+**compounds with the side-button default below**: with Sleep/Wake disabled you
+cannot manually lock the phone either, so every single glance at Sanctum leaves
+the screen lit for twenty minutes afterwards, including in your pocket.
+
+Ten interactions a day at 20 minutes each is over three hours of unnecessary
+screen-on — roughly **10% of the battery per day**, turning a four-day phone into
+a three-day one. Real, but not the catastrophe the previous draft described.
+
+**Configure both:** Mirror Display Auto-Lock **on**, and system Auto-Lock set
+short (30 seconds to a minute). Then Sanctum behaves like a normal phone, which
+is what [power](power.md) assumes. Confirm the setting's name and location on
+iOS 26 — it has moved between versions, and the default state isn't documented
+anywhere I could find.
 
 ### 2. The side button is disabled by default
 
@@ -116,9 +124,9 @@ In the Options sheet shown before starting a session, hardware buttons can be
 individually enabled, and **Sleep/Wake defaults to off** — the side button is
 simply ignored for the duration.
 
-Turn it on. Two reasons: you get manual lock (press to sleep, rather than waiting
-out the timeout), and it's a precondition for Apple Pay working at all — see
-below.
+Turn it on. Two reasons: you get manual lock — without it you cannot put the
+phone to sleep at all, which is what makes the 20-minute timeout above so
+expensive — and it's a precondition for Apple Pay working at all, see below.
 
 Note this is configured **per session, per app**, so it has to be re-set every
 time a session is started rather than once globally. On a phone that reboots,
@@ -175,7 +183,42 @@ This is a meaningfully smaller loss than the lockdown first appears to impose.
 Worth stating plainly in the README, because "I'd lose my car key" is the kind of
 objection that kills the idea before anyone checks whether it's true.
 
-### Wallet splits three ways
+### Crash behavior is undocumented, and the field reports are poor
+
+[Row 12](notifications.md#verification-matrix) asked whether iOS relaunches into
+Sanctum after a crash. Researched: **Apple does not document this anywhere**, and
+what operators report is not encouraging.
+
+- Apps *do* appear to eventually relaunch inside a session, but unpredictably —
+  one operator monitoring server logs reported waits of **"an hour or two."**
+- Crashes frequently leave a **black screen** that needs a button press, or a
+  full reboot, to recover.
+- Pushing an app update to a device in an active session has hung devices
+  entirely.
+- Most relevant to us: long-running sessions degrade. There are reports of
+  kiosks running flawlessly for **two days** and then lagging, crashing and
+  blacking out, recoverable only by rebooting.
+
+That last one is pointed directly at a phone meant to stay locked for weeks, and
+it raises the stakes on the reliability work already required in
+[power](power.md#7--memory--not-power-but-adjacent): leaks, unbounded caches and
+drifting timers stop being hygiene and become the difference between a working
+phone and a black rectangle.
+
+**The saving grace: alarms don't depend on the app running.** AlarmKit schedules
+with the system, so a crashed or suspended Sanctum doesn't cancel your alarm —
+it still fires, full-screen, on time. The worst case is losing messages and
+Claude for an hour, not oversleeping. This is a much better argument for AlarmKit
+over any in-app scheme than the one in [alarm](features/alarm.md), and it partly
+recovers the redundancy lost when the foreground audio fallback was dropped.
+
+It also cuts the other way on lockdown mode. Device-level
+[Single App Mode](#c--single-app-mode-device-level-app-lock) is designed to
+relaunch its app, so supervision may buy real crash resilience — the opposite of
+the [expiry argument](building.md#the-expiry-landmine), which pushed away from
+it. Both are unverified; they should be tested together before choosing.
+
+## Wallet splits three ways
 
 I'd been treating Wallet as one thing that "still works." It isn't, and the three
 cases have very different confidence levels.

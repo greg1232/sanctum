@@ -97,8 +97,9 @@ answer next to each row. Until then, treat every one as unknown.
 | 9 | AirPods / Bluetooth connection banner | Shown? | ? |
 | 10 | Emergency/WEA test alert | Takes over? (assumed yes) | ? |
 | 11 | Focus mode change | Does it affect Sanctum's own audio? | ? |
-| 12 | App crash or jetsam kill | Does iOS relaunch into Sanctum, or drop to home screen? | ? |
-| 12b | Mirror Display Auto-Lock on, session running | Does the screen actually sleep on schedule? | ? |
+| 12 | App crash or jetsam kill | Relaunch, black screen, or home screen? How long? Researched: undocumented, reports say up to an hour. | ? |
+| 12b | Mirror Display Auto-Lock on + short Auto-Lock | Does the screen sleep on the system schedule? | ? |
+| 12c | Soak: session running 7+ days untouched | Do the two-day degradation reports reproduce? | ? |
 
 ### Background services matrix
 
