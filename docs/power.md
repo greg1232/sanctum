@@ -297,6 +297,71 @@ show a one-time setup review listing what's still unset. Not a recurring warning
   largest configuration lever and it depends entirely on whether this phone
   leaves the house.
 
+## How long would it actually last?
+
+⚠️ **These are modeled estimates, not measurements.** They're built from published
+battery capacities and Apple's rated runtimes, and the component figures below
+could each be off by half. They're here to check whether the design decisions
+make sense, not to promise a number. The M0 soak test replaces all of it.
+
+Baseline: a standard iPhone is roughly **13 Wh** (a Pro Max is closer to 17–18;
+scale accordingly). Battery health scales everything linearly — an 85% battery
+gives 85% of these figures.
+
+### Component draw
+
+| State | Estimated draw | As % of a 13 Wh battery |
+| --- | --- | --- |
+| Deep standby — wifi, Low Power Mode, no background refresh | ~50 mW | **~0.4 %/hr** |
+| Deep standby — cellular, poor signal | up to ~200 mW | ~1.5 %/hr |
+| Dock mode — screen on, true black, minimum brightness, 1 redraw/min | ~400 mW | **~3 %/hr** |
+| Active use — reading mail or a thread, dark UI, network | ~2 W | **~15 %/hr** |
+| One APNs push wake | ~1 J | ~0.002% — **negligible** |
+
+### Scenarios
+
+| Scenario | Daily drain | Expected life |
+| --- | --- | --- |
+| **Carried, wifi + cellular, ~1 hr/day screen-on** | 23 hr standby (9%) + 1 hr active (15%) ≈ 25% | **~4 days** |
+| **Carried, wifi only, ~20 min/day screen-on** | 6% + 5% ≈ 11% | **~9 days** |
+| **Heavy day** — poor cellular, lots of Claude streaming | ~60–80% | ~1.5 days |
+| **Unplugged on the nightstand in dock mode** | 8 hr × 3% = **24% overnight** | — |
+| **Docked and plugged in** | n/a | indefinite; see [the plugged-in problem](#the-plugged-in-problem) |
+
+For calibration: run the same model on a normal phone — 4 hours of screen-on time
+and heavier background activity gives ~75%/day, i.e. charging every night. That
+matches reality, which suggests the model isn't wildly off.
+
+### What the numbers actually tell us
+
+**1. Multi-day battery life is the realistic target, and it's not from
+optimization.** It's from screen-on time. A normal phone spends 3–5 hours a day
+lit because several apps are engineered to make that happen. Sanctum has no such
+app, so the dominant term collapses — and everything else follows from that one
+fact rather than from anything clever.
+
+**2. Push costs essentially nothing.** At ~0.002% per wake, even a hundred
+notifications a day is a rounding error. The
+[decision to let the screen sleep](#sleep-and-wake--yes-avoid-the-always-on-display)
+gave up nothing measurable and bought multi-day life. That was the right call and
+this is the arithmetic confirming it.
+
+**3. Dock mode must stay charging-only.** A night of unplugged dock mode costs
+~24% — a quarter of the battery to display a clock nobody is looking at for seven
+of those eight hours. Gating it on charging state isn't a nicety, it's the
+difference between a four-day phone and a two-day one.
+
+**4. Cellular signal is the largest variable you don't control.** Standby in poor
+signal is roughly 4× standby on wifi, which alone moves a four-day phone to
+two-and-a-half. This is the strongest argument for the wifi-only configuration
+where it's viable, and it's why "does this phone leave the house" keeps being the
+question everything hinges on.
+
+**5. One hour of active use costs more than a full day of standby.** Fifteen
+percent versus nine. Which means no optimization in this document matters as much
+as the app not being interesting to stare at — and that's a design property, not
+an engineering one.
+
 ## Budget and measurement
 
 Don't guess at any of this — the ranking above is sound, but magnitudes on real
@@ -311,7 +376,8 @@ hardware are the only thing that should drive optimization work.
 - **A soak test**: leave the device unplugged in each UI state for an hour and
   record percent-per-hour.
 
-**States to budget, cheapest to most expensive:**
+**States to budget, cheapest to most expensive** — the estimates above are the
+hypothesis each of these is testing:
 
 | State | Target |
 | --- | --- |
