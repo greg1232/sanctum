@@ -21,12 +21,20 @@ That collapses most of the problem:
   happening in one tab pulling focus while you're in another. That's an in-app
   concern — a router and a presentation policy — not APNs.
 
-**APNs is only needed for the configuration where the screen locks.** If auto-lock
-is off, remote push buys us nothing. If auto-lock is on, the app backgrounds and
-the socket dies, and we need push — which means a relay, which is the one thing
-that tempts us toward infrastructure we said we wouldn't run.
+**APNs is only needed for the configuration where the screen locks** — and we've
+since decided the screen *should* lock. See
+[power](power.md#sleep-and-wake--yes-avoid-the-always-on-display): an always-on
+display quietly turns Sanctum into a stationary appliance, so auto-lock is the
+default and the persistent clock face becomes a charging-only dock mode.
 
-Decide the auto-lock question first. It determines whether push exists at all.
+So push exists. It is much cheaper than this document originally implied: APNs
+token auth means **`sanctumd` is the provider directly** — a `.p8` key and an
+HTTP/2 client on a box you already run, no relay and nothing hosted. The real
+prerequisite is a paid Apple Developer account, which AlarmKit and Time Sensitive
+notifications need anyway.
+
+Push payloads pass through Apple, so they carry minimal text ("Sam sent a
+message") and the app fetches real content over its own socket on wake.
 
 ## Layer 1 — Sanctum itself
 
@@ -137,10 +145,5 @@ again, and the roster stops meaning anything.
 
 ## Open questions
 
-- **Auto-lock on or off.** Determines whether APNs and a push relay exist at all.
-  Everything in this document hinges on it.
-- **Push relay.** If we need one, what's the minimum that doesn't become hosted
-  infrastructure? A single-tenant relay on the sandbox still needs an APNs
-  certificate and an outbound path — it's the least bad option, not a good one.
 - **Verification matrix, all 12 rows.** Blocking work for M0. Cheap to run,
   invalidates real design if it comes out the other way.

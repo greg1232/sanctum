@@ -171,11 +171,11 @@ good excuse to stop broadcasting presence.
 
 ## Open questions
 
-- **Notifications.** A message arriving while the phone is idle needs APNs, which
-  needs a push relay — the same unresolved problem as
-  [Claude](claude.md#open-questions), now urgent, because nobody accepts a chat
-  app that only notifies while it's open. The roster helps: ten people is a
-  volume where per-sender push rules are actually tractable.
+- **Notifications.** Settled: `sanctumd` pushes via APNs directly (see
+  [power](../power.md#the-correction-no-relay-is-needed)), with minimal payloads
+  — "Sam sent a message", never the body, since push passes through Apple. Still
+  open is whether per-sender rules are worth it; a ten-person roster is a volume
+  where they'd actually be tractable.
 - **Non-roster policy.** Quarantine vs. notify vs. drop (above).
 - **Media at rest.** Photos and voice notes proxied and cached where, for how
   long, under what key.

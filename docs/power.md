@@ -114,25 +114,86 @@ Sanctum should surface this: if the app can see it's been on the charger above
 Not a nag — a phone this deliberate deserves to tell you when its own deployment
 model is quietly destroying it.
 
-## The auto-lock question, revisited
+## Sleep and wake — yes, avoid the always-on display
 
-[Notifications](notifications.md#the-reframe-sanctum-is-foreground-so-it-mostly-doesnt-need-notifications)
-framed auto-lock as a binary with a nasty tradeoff: screen always on means no
-push relay needed but heavy drain; auto-lock on means far less power but an APNs
-relay we don't want to run.
+Earlier drafts of this document and of [notifications](notifications.md) argued
+for keeping the screen on with an app-drawn near-black idle face, on the grounds
+that letting it sleep would force us into push infrastructure we didn't want.
 
-Power suggests a third option that may be the actual answer:
+**That was wrong, and the always-on face is the worse default.** It quietly
+assumes a stationary, permanently plugged-in device — which makes Sanctum a
+nightstand appliance rather than a phone you carry. The original goal was a phone
+that replaces your phone.
 
-> **Keep the screen on, but let Sanctum draw its own idle state** — a
-> near-entirely-black face at minimum brightness, redrawing once a minute.
+**Decision: auto-lock on, normal sleep. Always-on becomes a charging-only "dock
+mode."** When the device is on power, Sanctum may present the black clock face
+and hold the screen; unplugged, it sleeps like any phone. That's a one-line
+condition on battery state, and it gets you the nightstand behavior *and* a
+phone with a normal battery life. Not either/or.
 
-You keep glanceability, you keep the open socket, you need no push
-infrastructure, and you avoid most of the display cost, because on OLED the cost
-*is* the lit pixels. It is an app-drawn approximation of always-on display, and
-it fits a device that is plugged in anyway.
+Note also that on iPhones with a system always-on display, the lock screen still
+shows a 1Hz clock while asleep — the nightstand glance partly works with no
+involvement from us at all.
 
-This is now my preferred answer to the auto-lock question. It needs measuring
-before it's a decision.
+### What sleeping actually costs
+
+When the screen locks, Sanctum backgrounds and is suspended within seconds. The
+WebSocket to [`sanctumd`](features/claude.md) dies. Timely messages therefore
+require **APNs**. There is no way around this: `audio` background mode (playing
+silence to stay alive) is a hack with a real power cost of its own; `voip` now
+requires PushKit pushes that must produce a CallKit call; `BGAppRefreshTask` is
+opportunistic and nowhere near timely enough.
+
+### The correction: no relay is needed
+
+The earlier framing — that push "tempts us toward hosted infrastructure we said
+we wouldn't run" — was overstated. Modern APNs uses token-based auth: an HTTP/2
+request to Apple, signed with a JWT from a `.p8` key issued by your developer
+account. **`sanctumd` can be the push provider directly.** The device registers
+for remote notifications, hands its token to `sanctumd` over the socket it
+already has, and `sanctumd` posts to Apple when something arrives.
+
+That's a p8 file and an HTTP/2 client on a box you already own. Apple's APNs sits
+in the path — but it sits in the path of every notification on the device
+regardless, so it costs us nothing we hadn't already conceded.
+
+The real prerequisite is the **$99/yr Apple Developer Program**, since push
+requires a paid account. That's almost certainly already required for AlarmKit's
+entitlement, Time Sensitive notifications, and a signing certificate that lasts a
+year instead of seven days.
+
+### Keep content out of the payload
+
+Push payloads pass through Apple. For a messaging app that matters, so:
+
+- Alert pushes carry **minimal text** — "Sam sent a message", never the body.
+- The app fetches real content over its own socket on wake, and may raise a
+  *local* notification with detail once it has it.
+- Silent (`content-available`) pushes are the privacy-maximal version but are
+  throttled and not guaranteed, so they can't be the only mechanism for anything
+  time-sensitive. Use a minimal alert push, and treat silent pushes as an
+  optimization.
+- Roster messages should use `interruption-level: time-sensitive` so they break
+  through Focus.
+
+### What still works with no push at all
+
+Worth being precise, because it bounds the blast radius:
+
+- **Alarms and timers:** unaffected. AlarmKit is local and fires from a sleeping
+  device by design. Nothing about push touches [alarm](features/alarm.md).
+- **Calendar alerts:** unaffected. Local notifications, scheduled on device.
+- **Messages and Claude:** these are the only surfaces that degrade, which
+  matches the dependency table in [architecture](architecture.md#offline--online-split).
+
+A sandbox outage still costs you nothing you'd oversleep over.
+
+### One place the lockdown helps
+
+Under Guided Access there is no app switcher, so the user cannot force-quit
+Sanctum. That matters: a user-terminated app stops receiving silent pushes
+entirely, while an app iOS itself evicted can still be relaunched by one. The
+lockdown makes the background story *more* reliable, not less.
 
 ## Budget and measurement
 
@@ -163,9 +224,9 @@ a tradeoff; an uncapped retry loop is just a mistake that flattens the battery.
 
 ## Open questions
 
-- **Does the dim-idle face actually save what I think it does?** Measure a
-  true-black minimum-brightness static face against screen-off. If the gap is
-  small, the auto-lock question resolves itself and we never build a push relay.
+- **How expensive is dock mode really?** The black idle face is now optional
+  rather than load-bearing, but if it's within a few percent of screen-off it can
+  stay on unplugged too. Measure before deciding.
 - **Cellular at all?** If this phone lives on wifi, disabling cellular data is
   free battery. If it's also the phone that needs to work away from home, no.
   Related to the telephony question in [roadmap](roadmap.md#open-questions).

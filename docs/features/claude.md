@@ -87,7 +87,8 @@ may degrade when this one is down.
 
 - Voice input. Dictation is native and probably enough; push-to-talk with local
   transcription is the ambitious version.
-- Notifications when a long-running agent turn finishes. Needs APNs, which needs
-  a push relay — the first thing that would tempt us toward hosted infrastructure.
-  Alternative: keep the socket alive while foregrounded and accept that it only
-  works while the phone is awake. Probably fine for a Guided Access phone.
+- Notifications when a long-running agent turn finishes. Resolved in
+  [power](../power.md#the-correction-no-relay-is-needed): `sanctumd` is the APNs
+  provider directly, so this costs a `.p8` key rather than new infrastructure.
+  Open only in the sense of taste — an agent that pings on every tool call is a
+  feed, so default to notifying on turn completion and approval requests only.
