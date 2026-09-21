@@ -33,19 +33,41 @@ the screen can sleep), **the AlarmKit entitlement** (so alarms work at all),
 
 ### The expiry landmine
 
-**A provisioning profile that expires while the phone is locked into Sanctum
-means the app will not launch.** On a device whose entire premise is that you
-can't leave the app, that's the single worst operational failure available.
+**A provisioning profile that expires means the app will not launch.** iOS
+validates the embedded profile at launch, so the app is still installed and the
+phone is entirely normal — you just tap the icon and nothing happens.
 
-Two mitigations, both cheap, and the first one should be built:
+It is not a brick, and how bad it actually is depends entirely on which lockdown
+mode you chose:
+
+| Mode | What happens | Severity |
+| --- | --- | --- |
+| **A — Guided Access** | Triple-click plus passcode always works; it's a system gesture handled outside the app. A reboot lands you on a normal home screen anyway, since the session doesn't survive one. | **Annoying.** You have a normal iPhone with a dead icon. Fixed in minutes with a Mac. |
+| **B — ASAM** | Safe by construction: the lock exists only because the app asked for it, so an app that can't launch never locks anything. | **Annoying**, same as A. |
+| **C — Single App Mode** | The device is configured to boot *into* an app that won't start. Lifting it requires MDM access or a DFU restore. | **This is the one that earns the alarm.** |
+
+So the real content of this warning is narrower than it first appears: the
+self-check matters most if you ever move to device-level Single App Mode, and
+it's cheap insurance in every case. It's also a standing argument for
+[developing against A and treating C as a destination](guided-access.md#recommendation),
+reached deliberately and with the renewal date already on the calendar.
+
+Worth knowing: a *running* app is very unlikely to be killed mid-session when its
+profile lapses, since validation happens at launch — but assume any relaunch
+fails, and treat that as unverified along with
+[row 12](notifications.md#verification-matrix).
+
+Two mitigations, both cheap, and the first should still be built:
 
 1. **The app checks its own expiry.** `embedded.mobileprovision` ships inside the
    bundle and can be parsed at runtime for its `ExpirationDate`. Sanctum should
    read it at launch and start warning at 30 days out — visibly, persistently,
-   escalating. This is a small amount of code that prevents the worst class of
-   outage this project has.
+   escalating.
 2. **A calendar event at 11 months**, set the day you first install. Sanctum has
    a calendar; use it.
+
+This is also the clearest reason not to live with a free-tier build: the same
+mechanism fires every seven days rather than every year.
 
 Also surface build version, build date and profile expiry in settings. On a
 device you can't easily inspect, the app should be able to tell you what it is.
