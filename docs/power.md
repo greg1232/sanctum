@@ -195,6 +195,108 @@ Sanctum. That matters: a user-terminated app stops receiving silent pushes
 entirely, while an app iOS itself evicted can still be relaunched by one. The
 lockdown makes the background story *more* reliable, not less.
 
+## Maximizing battery life
+
+### The largest win is already built in
+
+Before any settings discussion: on a normal phone, battery goes to **screen-on
+time**, and screen-on time goes to apps engineered to hold you there. Sanctum has
+none. Every list in it is finite, nothing scrolls forever, and there is no app to
+switch to when you're bored.
+
+A phone whose entire software surface is four bounded tools has a fraction of the
+screen-on time of a normal phone, and screen-on time is the dominant term. **The
+feature set is the battery optimization.** Everything below is the small term —
+worth doing, but don't mistake it for the main event.
+
+### What Sanctum can control directly
+
+The app's own behavior, no permissions required:
+
+- **`UIScreen.main.brightness`** — settable. The app can drive brightness down
+  for its own dark surfaces and the system restores it on exit. Combined with
+  OLED black, this is the biggest lever we actually hold.
+- **`isIdleTimerDisabled`** — whether the screen sleeps. Per the dock-mode
+  decision above: `false` normally, `true` only while charging.
+- **Refresh rate.** `CADisplayLink.preferredFrameRateRange` requests a low frame
+  rate on ProMotion displays. A static clock should ask for the floor.
+- **Network batching and keepalive tuning** — covered above; the radio tail is
+  ours to manage.
+- **`ProcessInfo.isLowPowerModeEnabled`** — readable, not settable. React to it:
+  stretch poll intervals, drop dock mode, stop non-essential sync.
+- **`ProcessInfo.thermalState`** — back off under thermal pressure rather than
+  competing with the system for a throttled SoC.
+- **`UIApplication.backgroundRefreshStatus`** and `NWPathMonitor` (`isExpensive`
+  for cellular, `isConstrained` for Low Data Mode) — readable, so the app can at
+  least *audit* the environment it's running in.
+
+### What only pre-lockdown configuration can do
+
+There is no API for any of this. It belongs in the
+[configure before you lock](guided-access.md#configure-before-you-lock)
+checklist, and most of it costs nothing precisely *because* no other app is in
+use:
+
+| Setting | Why it's free here |
+| --- | --- |
+| **Low Power Mode on** | Throttles background activity and caps ProMotion at 60Hz. On a device doing almost nothing, imperceptible. ⚠️ Auto-disables at 80% charge — see below. |
+| **Background App Refresh off (global)** | Nothing else needs to refresh. Does not affect BLE background modes, so the [car key still works](guided-access.md#worked-example-a-tesla-phone-key). |
+| **LTE instead of 5G**, or cellular data off entirely | 5G costs real power. If this is a wifi-first device, the whole radio can go. |
+| **Wi-Fi Assist off** | Stops silent, expensive failover to cellular. |
+| **Raise to Wake and Tap to Wake off** | A phone in a pocket lights its screen dozens of times a day for nobody. |
+| **System always-on display off** | We decided the phone sleeps; the lock-screen AOD is pure cost. |
+| **Dark Mode forced** | OLED again, and it matches the design anyway. |
+| **Reduce Motion / Reduce Transparency** | Small GPU savings, consistent with the aesthetic. |
+| **Automatic app updates and downloads off** | There is no App Store use. |
+| **System Mail fetch off** for accounts Sanctum syncs | Otherwise the same mailbox is fetched twice by two clients. |
+| **"Hey Siri" off** | Small always-listening cost — but see the Siri question below before assuming this is purely a win. |
+
+Two that need thought rather than a blanket toggle:
+
+- **Bluetooth: leave it on.** Car key, Watch, AirPods all depend on it, and these
+  are exactly the things the lockdown otherwise preserves.
+- **Location Services: don't disable globally.** It would take Find My with it.
+  Turn it off per-app instead; Sanctum requests none.
+
+### Supervision buys more than the lock
+
+If the device is supervised for
+[Autonomous Single App Mode](guided-access.md#b--autonomous-single-app-mode-asam),
+MDM restriction payloads can *enforce* much of the table above declaratively
+rather than relying on someone remembering to flip switches — App Store off, Siri
+off, AirDrop off, iCloud services off, and more.
+
+That strengthens the case for supervision. The tax isn't only buying a better
+lock; it's buying a reproducible device configuration.
+
+### What we simply cannot do
+
+Be clear about the boundary so nobody plans around a fantasy: an app cannot
+toggle cellular, Bluetooth, 5G, Low Power Mode, Background App Refresh, or
+Location Services. It cannot deep-link to those Settings panes either — the
+private URL schemes that once allowed it are blocked, and
+`openSettingsURLString` only reaches Sanctum's own page.
+
+What Sanctum *can* do is **audit and nag once**: check what it can read
+(background refresh status, Low Power Mode, cellular vs wifi, battery state), and
+show a one-time setup review listing what's still unset. Not a recurring warning
+— a checklist that goes away when you've done it.
+
+### Questions to settle
+
+- **Does Low Power Mode survive the nightstand?** It auto-disables at 80% charge,
+  which is exactly what a docked phone hits every night. A Shortcuts personal
+  automation triggering on charger disconnect could re-enable it — *if* Shortcuts
+  automations fire during a Guided Access session. Unverified, and worth knowing,
+  because it also tells us whether Shortcuts is available as a general escape
+  valve.
+- **Does Siri work under Guided Access?** If it does, it's simultaneously a
+  lockdown hole and a genuine capability — voice is a good input method for a
+  phone with a deliberately small UI. Decide which before disabling it.
+- **Cellular at all?** Still the open question from below. It's the single
+  largest configuration lever and it depends entirely on whether this phone
+  leaves the house.
+
 ## Budget and measurement
 
 Don't guess at any of this — the ranking above is sound, but magnitudes on real

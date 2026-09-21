@@ -148,6 +148,11 @@ foreground setup steps that must all happen before the device is pinned:
   [messaging roster](features/messaging.md#people-not-accounts)
 - Signal and WhatsApp device linking, which requires the official apps
 
+Plus the power configuration pass — Low Power Mode, Background App Refresh,
+5G/LTE, Raise to Wake and the rest — which is listed in
+[power](power.md#what-only-pre-lockdown-configuration-can-do). None of it is
+reachable from an app, so it all has to happen here.
+
 M0 should produce this as an actual printed checklist, not a paragraph. Getting
 locked into a phone that can't join a wifi network is a bad afternoon.
 

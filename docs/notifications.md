@@ -114,6 +114,11 @@ the phone can still open your car, so measure it rather than trust it.
 | 16 | Apple Watch | Stays connected, notifications relay to it? | ? |
 | 17 | AirPods | Auto-connect on open? | ? |
 | 18 | CarPlay, wired and wireless | Connects? What shows on the car screen? | ? |
+| 19 | Siri, side-button hold | Invocable? Can it leave the app or act? | ? |
+| 20 | Shortcuts personal automation (charger disconnect) | Does it fire during a session? | ? |
+
+Rows 19 and 20 are power and capability questions as much as notification ones —
+see [power](power.md#questions-to-settle).
 
 Row 16 is quietly interesting: if the Watch keeps relaying, it becomes a second
 notification channel that sidesteps most of this document.
