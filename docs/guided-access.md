@@ -84,6 +84,73 @@ a constraint — but it should be an upgrade path, never a requirement to run.
 Nothing in the app may assume it is locked down at all. Sanctum has to be a
 decent app on an ordinary unsupervised phone, or it can't be developed.
 
+## What the lockdown does *not* touch
+
+The mental model that matters:
+
+> **Guided Access constrains the screen, not the radios.**
+
+It restricts which app *you* can interact with. It does not change the process
+lifecycle of other apps, and it does not disable their background modes. Anything
+on the phone that already works with the device in your pocket keeps working,
+because it never needed the foreground in the first place.
+
+### Worked example: a Tesla phone key
+
+Tesla's phone key is BLE. You walk up, the car unlocks, and you never open the
+app — that's the entire design. It works from a backgrounded, suspended app via
+iOS's Bluetooth background modes, with the key material in the Secure Enclave.
+
+So under Guided Access it should simply keep working. **The key works; the app
+doesn't.** What you lose is everything behind Tesla's UI — climate, charge
+limits, summon, checking state of charge — because that genuinely needs the
+foreground, and Guided Access denies it.
+
+What this class of thing needs from us is nothing, except discipline about setup:
+pairing a phone key requires the Tesla app in the foreground and the key card on
+the console. That has to happen **before** the phone is locked down.
+
+### The general category
+
+Things that should survive the lockdown untouched, all for the same reason:
+
+| Still works | Why |
+| --- | --- |
+| Tesla / BLE phone keys | Bluetooth background modes, no UI needed |
+| Car, home, hotel and transit keys in **Wallet** | Express Mode works with the phone locked |
+| Apple Pay | Double-click side button; not blocked by Guided Access |
+| Apple Watch pairing and connection | Background BLE |
+| AirPods auto-connect | Background BLE |
+| Find My / AirTag network participation | System-level |
+| Location-based system services | Background modes are unaffected |
+
+And the flip side — things that need another app's UI, and are therefore gone:
+the Tesla app's controls, banking app approvals, any 2FA prompt that isn't a
+TOTP code you can read elsewhere, QR-scanner-based check-ins, anything that
+expects you to switch apps to confirm something.
+
+This is a meaningfully smaller loss than the lockdown first appears to impose.
+Worth stating plainly in the README, because "I'd lose my car key" is the kind of
+objection that kills the idea before anyone checks whether it's true.
+
+### Configure before you lock
+
+A recurring pattern across this project, now explicit. These are one-time
+foreground setup steps that must all happen before the device is pinned:
+
+- Mail and calendar accounts in Settings — see
+  [calendar](features/calendar.md#approach)
+- Tesla phone key pairing (app + key card)
+- Wallet cards and keys, with Express Mode enabled
+- Apple Watch and AirPods pairing
+- Wifi networks, including any you'll need away from home
+- Sanctum's own [sandbox enrollment](features/claude.md#auth) and
+  [messaging roster](features/messaging.md#people-not-accounts)
+- Signal and WhatsApp device linking, which requires the official apps
+
+M0 should produce this as an actual printed checklist, not a paragraph. Getting
+locked into a phone that can't join a wifi network is a bad afternoon.
+
 ## What the lockdown takes away
 
 Things Sanctum must either replace or consciously live without:

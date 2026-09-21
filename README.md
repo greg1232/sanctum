@@ -21,7 +21,10 @@ legitimately need from a phone. The base set:
 Claude and Messages share one **Talk** tab — both are conversations, and the
 agent on your sandbox is one of the people you talk to.
 
-Everything else is a deliberate addition, not a default.
+Everything else is a deliberate addition, not a default. Note that the lockdown
+constrains the screen, not the radios — your car key, Wallet, Watch and AirPods
+[keep working](docs/guided-access.md#what-the-lockdown-does-not-touch), because
+none of them ever needed the foreground.
 
 ## Status
 

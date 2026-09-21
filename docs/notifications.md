@@ -99,6 +99,25 @@ answer next to each row. Until then, treat every one as unknown.
 | 11 | Focus mode change | Does it affect Sanctum's own audio? | ? |
 | 12 | App crash or jetsam kill | Does iOS relaunch into Sanctum, or drop to home screen? | ? |
 
+### Background services matrix
+
+Same exercise for the claim in
+[guided-access](guided-access.md#what-the-lockdown-does-not-touch) that Guided
+Access leaves other apps' background modes alone. It's load-bearing for whether
+the phone can still open your car, so measure it rather than trust it.
+
+| # | Stimulus | Question | Result |
+| --- | --- | --- | --- |
+| 13 | Walk up to a Tesla with phone key paired | Does the car unlock? | ? |
+| 14 | Wallet car/home/transit key, Express Mode | Works held to a reader? | ? |
+| 15 | Apple Pay, double-click side button | Sheet appears and completes? | ? |
+| 16 | Apple Watch | Stays connected, notifications relay to it? | ? |
+| 17 | AirPods | Auto-connect on open? | ? |
+| 18 | CarPlay, wired and wireless | Connects? What shows on the car screen? | ? |
+
+Row 16 is quietly interesting: if the Watch keeps relaying, it becomes a second
+notification channel that sidesteps most of this document.
+
 Row 12 is the one people forget. If a crash drops the phone to the home screen
 and the Guided Access session ends, the whole premise fails silently overnight.
 Single App Mode relaunches; Guided Access is the one to check.
