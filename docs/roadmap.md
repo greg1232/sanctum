@@ -7,10 +7,15 @@ shell with honest empty states, CI running tests and snapshot tests. No feature
 logic. Runs on a real phone under Guided Access on day one so the constraints are
 felt early.
 
-Buy the Apple Developer Program on day one — push, AlarmKit and Time Sensitive
-notifications all need it, and seven-day provisioning makes anything else a
-waste of time. Build the provisioning-expiry self-check in the same pass; see
-[building](building.md#the-expiry-landmine).
+M0 itself needs no Apple account — it's simulator-only, so build it free and let
+finishing it be the decision point. Buy the Developer Program before M1, since
+AlarmKit is gated on it; see
+[starting free](building.md#starting-free-moving-to-paid). Build the
+provisioning-expiry self-check in the same pass as the purchase; see
+[the expiry landmine](building.md#the-expiry-landmine).
+
+Put `AlarmScheduling` and `PushRegistering` behind protocols from the start, like
+everything network-facing, so the free-to-paid move is an implementation swap.
 
 Wire up MetricKit from the first build — a long-running app should report its
 own power behavior rather than be profiled after the fact. See [power](power.md).

@@ -50,6 +50,91 @@ Two mitigations, both cheap, and the first one should be built:
 Also surface build version, build date and profile expiry in settings. On a
 device you can't easily inspect, the app should be able to tell you what it is.
 
+## Starting free, moving to paid
+
+Yes — and most of the work is free-tier-able. Worth being precise about where the
+wall actually is, because it's narrower than the table above suggests.
+
+### What a free Apple ID actually blocks
+
+Only four things, and three of them are entitlements:
+
+- **Push notifications** (APNs) — no `aps-environment` entitlement on free
+  accounts.
+- **AlarmKit** — needs its entitlement, requested through the developer portal.
+- **Time Sensitive notifications** — same.
+- **7-day provisioning**, plus a cap of 3 installed apps and rate-limited bundle
+  IDs.
+
+Everything else works. Notably **EventKit is a privacy permission, not an
+entitlement**, so the entire calendar feature builds free. So do local
+notifications (only *push* is gated), Keychain, Secure Enclave, Bluetooth,
+`AVAudioSession`, and all networking — which means IMAP, SMTP, OAuth and our
+WebSocket to `sanctumd` are all fair game.
+
+And simulator builds need no signing at all.
+
+### By milestone
+
+| Milestone | Free? |
+| --- | --- |
+| **M0** skeleton, SanctumKit, tests, snapshots | **Fully.** Simulator only, no account needed. |
+| **M1** alarm | Everything *except* AlarmKit itself — scheduling, DST correctness, the clock face, the ringing UI and timers all test against a fake clock. |
+| **M2** calendar | **Fully.** EventKit needs no entitlement. |
+| **M3** Claude | ~95%. Secure Enclave enrollment, streaming, tool approvals, the whole socket. Only turn-finished notifications need push. |
+| **M4** email | **Fully.** It's networking. |
+| **M5** messages | Phone side fully; the sandbox is Go and has nothing to do with Apple. Only push is gated. |
+
+The 7-day expiry mostly doesn't bite during development, because you're
+rebuilding from Xcode constantly anyway. It bites the moment you want to *live
+with* the app — which is exactly when you should be paying.
+
+### The discipline that makes the swap cheap
+
+[Architecture](architecture.md#layering-rules) already requires everything
+network-facing to sit behind a protocol with a fake. **Extend that rule to gated
+system capabilities.** `AlarmScheduling` and `PushRegistering` are protocols in
+`SanctumKit`; the free-tier implementations use local notifications and a no-op,
+and the paid ones drop in behind the same interface.
+
+This is worth doing regardless of billing — it's also what lets the whole app run
+in previews and tests — but it turns the free-to-paid move into swapping two
+implementations rather than a migration.
+
+### Migration gotchas
+
+Three, and the second one surprises people:
+
+1. **Pick the final bundle identifier now** and never change it. Changing it
+   changes the app's data container.
+2. **A Team ID change invalidates Keychain items.** Keychain access groups are
+   prefixed by Team ID, so moving from a personal team to a paid one orphans
+   everything stored during free development — including the Secure Enclave
+   device key. You'll re-run [sandbox enrollment](features/claude.md#auth) and
+   re-enter mail credentials. Fine for dev data, but it means `sanctumd` must
+   handle device-key revocation and re-enrollment cleanly, which it should
+   anyway.
+3. **iOS won't install over an app signed by a different team**, so the migration
+   is delete-then-install. Local data goes with it. Again fine for dev, and a
+   good forcing function for making first-run setup painless.
+
+### When to buy
+
+Buy at the point where **either** you want to run it on your real phone for more
+than a week, **or** you start M1's AlarmKit work. Given the roadmap puts alarm
+first, that's early — probably a few evenings in.
+
+So the honest sequence: **do M0 free.** It's the skeleton, the design system and
+the test harness, it runs entirely in the simulator, and finishing it tells you
+whether you actually want to build this. Then pay, before writing a line of
+AlarmKit.
+
+There's an alternative worth naming and, I think, rejecting: **reordering the
+roadmap** to put Calendar (fully free) before Alarm, stretching the free runway
+by weeks. It works, but Alarm is first for a real reason — it's the highest
+reliability bar and the fastest route to a phone that's already useful — and
+reshaping a project to defer $99 is false economy. Keep the order; pay early.
+
 ## Repo and build layout
 
 ```
