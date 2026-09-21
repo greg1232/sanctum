@@ -128,6 +128,18 @@ Turn it on. Two reasons: you get manual lock — without it you cannot put the
 phone to sleep at all, which is what makes the 20-minute timeout above so
 expensive — and it's a precondition for Apple Pay working at all, see below.
 
+Note that a "disabled" button still works for the triple-click that pauses the
+session — Apple describes the option as preventing use of the button "except to
+pause the session." The way out is never disabled.
+
+Why is it off by default? Because Guided Access is built for children, exam
+candidates, kiosk users and people with cognitive disabilities, and for all of
+them **the lock screen is an escape surface**. Letting them lock the device hands
+them Control Center, Notification Center, widgets, Siri and the camera. Off by
+default is the right call for Apple's audience; it's the wrong one for ours.
+
+But the trade is real for us too — see below.
+
 Note this is configured **per session, per app**, so it has to be re-set every
 time a session is started rather than once globally. On a phone that reboots,
 that's a step you will forget. It's a genuine argument for
@@ -183,7 +195,38 @@ This is a meaningfully smaller loss than the lockdown first appears to impose.
 Worth stating plainly in the README, because "I'd lose my car key" is the kind of
 objection that kills the idea before anyone checks whether it's true.
 
-### Crash behavior is undocumented, and the field reports are poor
+### The lock screen is a hole, and we opened it deliberately
+
+Enabling the side button, and mandating auto-lock for
+[power](power.md#sleep-and-wake--the-screen-sleeps-always), both lead to the same
+place: the phone reaches its normal lock screen, and Guided Access does not
+harden it. From there you can reach Control Center, Notification Center, widgets,
+Siri and the Camera.
+
+That's a genuine gap in the containment story, and it isn't optional — the
+alternative is a screen that never sleeps, which we already rejected on battery
+grounds. So mitigate it in Settings instead.
+
+**Settings → Face ID & Passcode → Allow Access When Locked.** Turn off:
+
+- Widgets / Today View
+- Notification Center
+- Control Center — the important one. From Control Center anyone can disable
+  wifi, cellular and Bluetooth, which among other things defeats Find My.
+- Siri
+- Reply with Message
+- Home Control
+- Wallet, unless you're relying on it
+
+**The Camera has no toggle there.** Removing the lock-screen camera means a
+Screen Time content restriction disabling the Camera app, or an MDM restriction
+payload — the latter being one more thing
+[supervision buys](power.md#supervision-buys-more-than-the-lock).
+
+None of this is reachable once the lockdown is on, so it belongs in the
+[pre-lockdown checklist](#configure-before-you-lock) with everything else.
+
+## Crash behavior is undocumented, and the field reports are poor
 
 [Row 12](notifications.md#verification-matrix) asked whether iOS relaunches into
 Sanctum after a crash. Researched: **Apple does not document this anywhere**, and
@@ -283,6 +326,12 @@ foreground setup steps that must all happen before the device is pinned:
   Button** in the session Options — see
   [session options you must change](#session-options-you-must-change). Both are
   off by default and both matter.
+- **Allow Access When Locked** toggles in Face ID & Passcode, plus a Screen Time
+  restriction on the Camera — see
+  [the lock screen is a hole](#the-lock-screen-is-a-hole-and-we-opened-it-deliberately).
+- **Practise ending a session with Face ID**, and make sure anyone who might need
+  to use this phone in an emergency knows how — see
+  [emergency access](#emergency-access).
 - **The VPN to the sandbox** — Tailscale or WireGuard, installed, signed in, and
   set to connect on demand. `sanctumd` is loopback-only, so without this the
   Talk tab can never reach it from cellular or any foreign network, and the
@@ -331,16 +380,41 @@ worse than a seam.
 
 ## Emergency access
 
-Non-negotiable: a phone locked into one app must never be a phone that can't call
-for help.
+⚠️ **Correction, and it matters more than anything else in this document.** An
+earlier draft claimed Emergency SOS works during a Guided Access session. It does
+not. Apple's documentation is explicit:
 
-- The system **Emergency SOS** gesture (hold side + volume) works during Guided
-  Access and is not something Sanctum can or should suppress.
-- Guided Access can be exited with the passcode or Face ID at any time.
-- Sanctum's own lock screen (if we add one) must never gate the app behind a
-  server check. Local-only auth.
+> "Crash Detection and Emergency Services aren't available while using Guided
+> Access. To use Crash Detection or make emergency calls, end the session."
 
-Document these in the app's own onboarding, not just here.
+So a phone locked into Sanctum **cannot call 911 until the session is ended**,
+and **Crash Detection is disabled** — the latter being pointed straight at a
+phone that rides in a car, which is the same phone we were cheerfully discussing
+[Tesla integration](integrations.md) for.
+
+Ending a session is triple-click plus Face ID, which is a couple of seconds if
+you are conscious, know the gesture, and are the enrolled face. It is not a
+couple of seconds for a bystander trying to use your phone to get help for you.
+
+### What follows from this
+
+1. **Use Face ID, not a passcode, to end sessions.** Fastest path out, and it
+   works when you're shaken.
+2. **Say it in onboarding, in plain words.** Not a footnote. Anyone living with
+   this phone needs to know that the emergency path runs through a gesture, and
+   needs to have practised it.
+3. **Consider whether this phone should carry a SIM at all.** If it can't make
+   an emergency call without ceremony, a second phone or a watch nearby stops
+   being a convenience.
+4. **This is the strongest argument yet for [ASAM](#b--autonomous-single-app-mode-asam).**
+   An app that locks itself can also *unlock* itself: Sanctum could present an
+   emergency affordance that ends the session and opens the dialer, no passcode,
+   no gesture, no prior knowledge. Under plain Guided Access we cannot build
+   that — only the person with the passcode can leave. A safety feature we can
+   only ship under supervision is a real reason to pursue it.
+
+Still true: Sanctum's own auth, if we ever add any, must never gate the app
+behind a server check. Local-only, always.
 
 ## UI consequences
 

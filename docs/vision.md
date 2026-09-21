@@ -29,9 +29,12 @@ doesn't provide it, you genuinely don't do it on this phone.
    real-world quantities (today's events, unread mail, one conversation).
 3. **Containment over blocking.** We don't fight the user with willpower prompts.
    The lockdown is structural, decided once, at setup.
-4. **The escape hatch is real but deliberate.** Guided Access is exited with a
-   passcode. Sanctum never pretends to be inescapable — that would be both a lie
-   and, in an emergency, dangerous. See [Escape hatches](guided-access.md#escape-hatches).
+4. **The escape hatch is real but deliberate.** Guided Access is exited with
+   Face ID or a passcode. Sanctum never pretends to be inescapable — that would
+   be both a lie and, in an emergency, dangerous. And the emergency case is not
+   hypothetical: **Apple disables emergency calling and Crash Detection during a
+   Guided Access session**, so the way out has to be known and practised. See
+   [emergency access](guided-access.md#emergency-access).
 5. **Degrade honestly.** No network, no sandbox, expired token — the app says so
    plainly and keeps the offline surfaces working. Calendar and alarms must never
    depend on the backend.

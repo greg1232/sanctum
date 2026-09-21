@@ -119,6 +119,8 @@ the phone can still open your car, so measure it rather than trust it.
 | 17 | AirPods | Auto-connect on open? | ? |
 | 18 | CarPlay, wired and wireless | Connects? What shows on the car screen? | ? |
 | 19 | Siri, side-button hold | Invocable? Can it leave the app or act? | ? |
+| 19b | Lock screen during a session | With Allow-Access-When-Locked off, what is still reachable? Camera? | ? |
+| 19c | Emergency SOS / dialling 911 mid-session | Confirm Apple's statement that it requires ending the session. | ? |
 | 20 | Shortcuts personal automation (charger disconnect) | Does it fire during a session? | ? |
 
 Rows 19 and 20 are power and capability questions as much as notification ones —
