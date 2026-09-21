@@ -29,6 +29,7 @@ Pre-code. Docs first — see [`docs/`](docs/).
 
 - [Vision & principles](docs/vision.md) — why this exists and what it refuses to do
 - [Architecture](docs/architecture.md) — app shape, modules, the sandbox backend
+- [Notifications](docs/notifications.md) — what can interrupt you, and what should
 - [Guided Access](docs/guided-access.md) — how the phone gets locked down, and what that costs
 - [Roadmap](docs/roadmap.md) — milestones and open questions
 - Features: [calendar](docs/features/calendar.md) · [email](docs/features/email.md) · [claude](docs/features/claude.md) · [messaging](docs/features/messaging.md) · [alarm](docs/features/alarm.md)
