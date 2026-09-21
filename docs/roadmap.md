@@ -7,6 +7,9 @@ shell with honest empty states, CI running tests and snapshot tests. No feature
 logic. Runs on a real phone under Guided Access on day one so the constraints are
 felt early.
 
+Wire up MetricKit from the first build — a long-running app should report its
+own power behavior rather than be profiled after the fact. See [power](power.md).
+
 Also blocking, and cheap: the 12-row
 [notification verification matrix](notifications.md#verification-matrix), and
 answering whether an individual can actually obtain an MDM push certificate —
