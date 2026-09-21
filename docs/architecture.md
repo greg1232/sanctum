@@ -40,6 +40,33 @@ One iOS app target, four feature domains, one optional backend.
 - **No feature may be required for another to launch.** The app opens with
   whatever is available and shows honest empty/error states for the rest.
 
+## Put changeable logic on the sandbox
+
+The two halves of this system deploy on wildly different terms, and it should
+shape where code lives.
+
+- **`sanctumd` deploys in seconds.** SSH, replace a binary, restart. As often as
+  you like.
+- **The app deploys with physical access.** Exit Guided Access, plug into a Mac,
+  build, install, re-lock. And it is signed with a certificate that
+  [expires](building.md#the-expiry-landmine).
+
+So: **when a piece of behavior could plausibly live on either side, put it on the
+sandbox.** Rules, rosters, schedules, credentials, integrations and policy are
+all things you will want to change at 11pm without a cable. The app should be a
+good client — rendering, input, and the things that must work with no network at
+all — and as little policy as possible.
+
+This retroactively explains several decisions already made: the messaging roster
+is sandbox configuration rather than app state, integrations are
+[agent tools rather than tabs](integrations.md#the-pattern-integrations-are-agent-tools-not-tabs),
+and Claude transcripts live server-side so a reinstalled phone loses nothing.
+
+The limit is the [offline split](#offline--online-split) below: anything that
+must work without the sandbox cannot live on it. Alarms and calendar are
+on-device precisely because you cannot ship a fix to a phone that failed to wake
+you.
+
 ## Offline / online split
 
 | Domain | Works with no network | Needs network | Needs the sandbox |

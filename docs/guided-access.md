@@ -144,6 +144,11 @@ foreground setup steps that must all happen before the device is pinned:
 - Wallet cards and keys, with Express Mode enabled
 - Apple Watch and AirPods pairing
 - Wifi networks, including any you'll need away from home
+- **The VPN to the sandbox** — Tailscale or WireGuard, installed, signed in, and
+  set to connect on demand. `sanctumd` is loopback-only, so without this the
+  Talk tab can never reach it from cellular or any foreign network, and the
+  VPN's own app is unreachable once the lockdown is on. Verify it reconnects
+  after a reboot before going further.
 - Sanctum's own [sandbox enrollment](features/claude.md#auth) and
   [messaging roster](features/messaging.md#people-not-accounts)
 - Signal and WhatsApp device linking, which requires the official apps
@@ -152,6 +157,10 @@ Plus the power configuration pass — Low Power Mode, Background App Refresh,
 5G/LTE, Raise to Wake and the rest — which is listed in
 [power](power.md#what-only-pre-lockdown-configuration-can-do). None of it is
 reachable from an app, so it all has to happen here.
+
+Order matters too: `sanctumd` has to be running and reachable *before* the phone
+is enrolled, because enrollment consumes a live one-time code. Sandbox first,
+app second, device configuration third, lockdown last.
 
 M0 should produce this as an actual printed checklist, not a paragraph. Getting
 locked into a phone that can't join a wifi network is a bad afternoon.
