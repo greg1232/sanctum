@@ -8,21 +8,23 @@ One iOS app target, four feature domains, one optional backend.
 ┌──────────────────────── iPhone (Guided Access) ────────────────────────┐
 │                                                                        │
 │   Sanctum.app  (SwiftUI, iOS 26+)                                      │
-│   ┌──────────┬──────────┬──────────┬──────────┐                        │
-│   │ Calendar │  Email   │  Claude  │  Alarm   │   ← feature packages   │
-│   └────┬─────┴────┬─────┴────┬─────┴────┬─────┘                        │
-│        │          │          │          │                              │
-│   ┌────┴──────────┴──────────┴──────────┴─────┐                        │
-│   │ SanctumKit: design system, storage,       │                        │
-│   │ keychain, networking, logging, clock      │                        │
-│   └────┬──────────┬──────────┬──────────┬─────┘                        │
-│        │          │          │          │                              │
-│    EventKit    IMAP/JMAP   WebSocket  AlarmKit                         │
-│        │          │          │          │                              │
-└────────┼──────────┼──────────┼──────────┼──────────────────────────────┘
-         │          │          │          │
-   system cals   mail host   sandbox    (on-device)
-                            (yours)
+│   ┌──────────┬──────────┬─────────────────────┬──────────┐            │
+│   │ Calendar │  Email   │        Talk         │  Alarm   │  ← packages │
+│   │          │          │  Claude · Messages  │          │             │
+│   └────┬─────┴────┬─────┴──────────┬──────────┴────┬─────┘            │
+│        │          │                │               │                   │
+│   ┌────┴──────────┴────────────────┴───────────────┴─────┐            │
+│   │ SanctumKit: design system, storage,                  │            │
+│   │ keychain, networking, logging, clock                 │            │
+│   └────┬──────────┬────────────────┬───────────────┬─────┘            │
+│        │          │                │               │                   │
+│    EventKit    IMAP/SMTP      WebSocket        AlarmKit                │
+│        │          │                │               │                   │
+└────────┼──────────┼────────────────┼───────────────┼───────────────────┘
+         │          │                │               │
+   system cals   mail host        sanctumd         (on-device)
+                              (yours: Claude Code,
+                               whatsmeow, signal-cli)
 ```
 
 ## Layering rules
@@ -46,13 +48,17 @@ One iOS app target, four feature domains, one optional backend.
 | Alarm | ✅ full | no | no |
 | Email | ✅ read cached window, queue outbound | fetch/send | no |
 | Claude | ❌ | ✅ | ✅ |
+| Messages | ✅ read cached threads | ✅ | ✅ |
 
 The sandbox is a single point of failure for exactly one surface, by design.
 Losing it must never cost you an alarm or a meeting.
 
 ## Navigation model
 
-A fixed four-item tab bar. No nested tabs, no hamburger, no hidden drawers. Depth
+A fixed four-item tab bar — Calendar, Email, Talk, Alarm. Claude and Messages
+share the Talk tab rather than growing the bar to five; see
+[messaging](features/messaging.md#where-it-lives-in-the-app). No nested tabs, no
+hamburger, no hidden drawers. Depth
 is capped at three pushes (list → item → compose/edit). Anything deeper is a
 design failure.
 
@@ -77,6 +83,8 @@ sitting next to a Claude Code installation. See
 
 - **Yours.** No Sanctum-operated infrastructure exists. There is no fleet.
 - **One user.** Auth is a device keypair enrolled once over a trusted channel.
+- **More than Claude.** It also hosts the WhatsApp and Signal companion clients
+  and the normalized message store — one service, one socket, one auth story.
 - **Stateless-ish.** Conversation history lives on the sandbox (so a lost phone
   loses nothing but its session), with a local cache on device for offline read.
 

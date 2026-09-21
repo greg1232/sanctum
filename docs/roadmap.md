@@ -27,7 +27,14 @@ approvals. Ship the sandbox service and the app side together.
 IMAP/SMTP with OAuth, recent-window sync, threaded inbox, sanitized HTML
 rendering, queued send. Longest milestone by a distance.
 
-## M5 — Live-in
+## M5 — Messages
+
+`whatsmeow` + `signal-cli` inside `sanctumd`, the person-based roster, the Talk
+tab merging Claude and messaging. Signal first — it's the supported linking flow
+and the lower-risk account. WhatsApp second, behind a setup flow that states the
+ban risk in words before you scan anything.
+
+## M6 — Live-in
 
 Two weeks of using it as the only app. Fix what actually breaks. Soak testing for
 multi-day uptime. Then decide what's next from the gap list below, not from this
@@ -45,8 +52,9 @@ a VoIP provider so Sanctum is a real phone over its own number, (c) put the SIM
 in a different device. (b) is the honest answer and a large amount of work. This
 is the biggest hole in "lose nothing you actually needed."
 
-**Messaging.** Same shape as telephony. Signal, iMessage, and WhatsApp are all
-closed to us. A Matrix or Signal-protocol client is conceivable; iMessage is not.
+**iMessage.** Closed to us in every direction, with no companion-device seam to
+exploit. Unlike WhatsApp and Signal (now planned for M5 — see
+[messaging](features/messaging.md)), there is no route here at all. Accept it.
 
 **Maps and transit.** MapKit works fine in-app. Turn-by-turn navigation on a
 locked phone is a different question. Probably out of scope; probably the second
@@ -58,6 +66,10 @@ own camera UI. Worth it only if mail attachments demand it.
 **Music / podcasts / audiobooks.** Nothing plays audio on this phone unless
 Sanctum plays it. A local-files player is a weekend; streaming services are not
 accessible. Bluetooth from another device sidesteps it entirely.
+
+**SMS for 2FA.** The practical sting of the telephony gap: no SMS means no
+login codes. TOTP where offered, an Android SMS-forwarder or a VoIP number
+otherwise. Probably decided together with telephony.
 
 **Notes / capture.** Arguably already covered by Claude on the sandbox, which is
 a better scratchpad than a notes app. Worth testing before building anything.

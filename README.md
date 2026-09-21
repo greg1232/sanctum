@@ -15,7 +15,11 @@ legitimately need from a phone. The base set:
 | **Calendar** | Read/write the device calendars via EventKit. Day, week, agenda. |
 | **Email** | A real mail client inside Sanctum — triage, read, reply. |
 | **Claude** | Chat with Claude Code running on a sandbox this phone connects to. |
+| **Messages** | WhatsApp and Signal, scoped to an explicit roster of people. |
 | **Alarm** | Alarms and timers that actually fire, including from a locked-down phone. |
+
+Claude and Messages share one **Talk** tab — both are conversations, and the
+agent on your sandbox is one of the people you talk to.
 
 Everything else is a deliberate addition, not a default.
 
@@ -27,7 +31,7 @@ Pre-code. Docs first — see [`docs/`](docs/).
 - [Architecture](docs/architecture.md) — app shape, modules, the sandbox backend
 - [Guided Access](docs/guided-access.md) — how the phone gets locked down, and what that costs
 - [Roadmap](docs/roadmap.md) — milestones and open questions
-- Features: [calendar](docs/features/calendar.md) · [email](docs/features/email.md) · [claude](docs/features/claude.md) · [alarm](docs/features/alarm.md)
+- Features: [calendar](docs/features/calendar.md) · [email](docs/features/email.md) · [claude](docs/features/claude.md) · [messaging](docs/features/messaging.md) · [alarm](docs/features/alarm.md)
 
 ## Repo layout (planned)
 
