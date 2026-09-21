@@ -1,34 +1,88 @@
 # Guided Access
 
-Sanctum's premise is that the phone cannot leave the app. iOS offers two ways to
-do that, and they are not equivalent.
+Sanctum's premise is that the phone cannot leave the app. iOS offers three
+mechanisms for this. They are not equivalent, and the differences decide what
+kind of object the phone becomes.
 
-## Option A — Guided Access (no MDM)
+## A — Guided Access
 
 Accessibility → Guided Access. Triple-click the side button inside Sanctum to
-start a session; triple-click and enter a passcode (or Face ID) to end it.
+start a session; triple-click plus passcode or Face ID to end it.
 
-- **Pros:** zero infrastructure, works on any phone in about 90 seconds, easy to
-  exit in an emergency.
-- **Cons:** it's a *session*, not a device state. It does not survive a reboot —
-  the phone comes up on the home screen and someone has to re-enter Guided
-  Access manually. Also disables the Home indicator and some system gestures in
-  ways that affect our UI (see below).
+- **Pros:** zero infrastructure, works on any iPhone in about 90 seconds, trivial
+  to exit in an emergency, nothing is erased.
+- **Cons:** it's a *session*, not a device state. **It does not survive a
+  reboot** — the phone comes up on the home screen and a human has to re-enter
+  Guided Access by hand. Also changes the Home indicator and some system gestures
+  in ways that affect our UI (see below).
 
-This is the default setup and what the docs assume.
+Default for development and for "my own phone, evenings." What the rest of these
+docs assume unless stated.
 
-## Option B — Single App Mode (supervised + MDM)
+## B — Autonomous Single App Mode (ASAM)
 
-Supervise the phone with Apple Configurator, enroll it, and push a Single App
-Mode payload locking it to Sanctum's bundle ID.
+The app locks *itself*. Sanctum calls `UIAccessibility.requestGuidedAccessSession(enabled:)`
+and iOS pins the device to it — no triple-click, no Accessibility menu. It works
+only if the device is **supervised** and an MDM payload lists Sanctum's bundle ID
+as permitted for autonomous mode. This is the mechanism behind school exam apps.
 
-- **Pros:** survives reboot, survives update, genuinely persistent. The phone is
-  a Sanctum appliance.
-- **Cons:** requires supervising the device (a full erase), a Mac, and an MDM or
-  Configurator workflow. Exiting means un-enrolling.
+- **Pros:** programmatic. Sanctum decides when the lock is on and when it lifts.
+- **Cons:** still needs supervision and MDM to authorize. Still doesn't survive
+  reboot, because after a restart nothing has launched Sanctum to make the call —
+  though recovery is one tap on an icon rather than a trip through Settings.
 
-Recommended for a dedicated second phone. Overkill for "my main phone, evenings
-only."
+**This is the most interesting option for Sanctum**, and the docs undersold it.
+A lock the app controls turns containment into something dynamic rather than a
+switch someone flips: bedtime mode can tighten the lock and the morning alarm can
+release it; a genuine emergency path can lift it without a passcode dance;
+[modes](roadmap.md#candidate-features-post-v1) become real rather than
+cosmetic. The risk is the obvious one — a bug in our code is now a bug in the
+lock — so the release path needs to be simple enough to audit in one sitting.
+
+## C — Single App Mode (device-level app lock)
+
+An MDM payload (`com.apple.app_lock`) pinning a supervised device to one bundle
+ID as **device state**, not a session. The phone boots directly into Sanctum.
+There is no home screen to return to.
+
+- **Pros:** survives reboot, survives update. This is the only option that makes
+  the phone genuinely an appliance.
+- **Cons:** the heaviest setup. Supervision requires erasing the device, and
+  lifting the lock means changing the payload or un-enrolling.
+
+Right answer for a dedicated second phone. Overkill for a primary.
+
+## The supervision tax
+
+B and C both require **supervision**, and that's the real barrier, so be clear
+about what it costs:
+
+1. **Erase the device.** Supervision is applied at setup, via Apple Configurator
+   on a Mac. There's no supervising a phone in place.
+2. **Get an MDM.** Something has to push the payload. Options run from hosted
+   (Mosyle, Jamf) to self-hosted open source (NanoMDM, MicroMDM) — the latter
+   being a natural fit given we already run a sandbox.
+3. **Get an APNs certificate for MDM.** ⚠️ **Verify this before planning around
+   B or C.** An MDM push certificate is obtained by submitting a CSR signed by an
+   MDM *vendor* certificate, which historically meant the Apple Developer
+   Enterprise Program. Community services exist that sign CSRs for self-hosted
+   MDM users, and hosted MDMs handle it for you. I'm not certain of the current
+   requirements for an individual, and it's the step most likely to block this
+   route entirely.
+
+Whether Apple Configurator alone can apply the app lock without a full MDM server
+is also worth checking — it would remove step 3 outright and make C dramatically
+more accessible.
+
+## Recommendation
+
+Build against **A**, design for **B**. Guided Access costs nothing and is enough
+to develop and live with. Autonomous Single App Mode is what Sanctum should
+ultimately want, because a lock the app itself controls is a feature rather than
+a constraint — but it should be an upgrade path, never a requirement to run.
+
+Nothing in the app may assume it is locked down at all. Sanctum has to be a
+decent app on an ordinary unsupervised phone, or it can't be developed.
 
 ## What the lockdown takes away
 

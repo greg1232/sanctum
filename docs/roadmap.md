@@ -7,6 +7,12 @@ shell with honest empty states, CI running tests and snapshot tests. No feature
 logic. Runs on a real phone under Guided Access on day one so the constraints are
 felt early.
 
+Also blocking, and cheap: the 12-row
+[notification verification matrix](notifications.md#verification-matrix), and
+answering whether an individual can actually obtain an MDM push certificate —
+that determines whether [Autonomous Single App Mode](guided-access.md#the-supervision-tax)
+is available to us at all.
+
 ## M1 — Clock first
 
 Alarm and timers, AlarmKit + foreground fallback, night clock face. Chosen first
