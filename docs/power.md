@@ -37,8 +37,10 @@ GPU idle. The offenders are subtle and all of them are aesthetic temptations:
 - A clock showing **seconds** at all — it forces 60× the redraws of one showing
   only hours and minutes, to tell you something you do not need at 3am.
 
-Target: the night clock face should redraw **once per minute** and be otherwise
-completely static. Everything else in the app draws on interaction only.
+Target: the clock face redraws **once per minute** while visible and is otherwise
+completely static. Everything else in the app draws on interaction only. This
+matters less now that no screen stays lit unattended, but a static screen is
+still free and an animated one isn't.
 
 ### 3. Radio — and specifically the tail
 
@@ -114,26 +116,27 @@ Sanctum should surface this: if the app can see it's been on the charger above
 Not a nag — a phone this deliberate deserves to tell you when its own deployment
 model is quietly destroying it.
 
-## Sleep and wake — yes, avoid the always-on display
+## Sleep and wake — the screen sleeps, always
 
-Earlier drafts of this document and of [notifications](notifications.md) argued
-for keeping the screen on with an app-drawn near-black idle face, on the grounds
-that letting it sleep would force us into push infrastructure we didn't want.
+Earlier drafts argued for keeping the screen on with an app-drawn near-black idle
+face, on the grounds that letting it sleep would force us into push
+infrastructure we didn't want. A later draft softened that to a charging-only
+"dock mode."
 
-**That was wrong, and the always-on face is the worse default.** It quietly
-assumes a stationary, permanently plugged-in device — which makes Sanctum a
-nightstand appliance rather than a phone you carry. The original goal was a phone
-that replaces your phone.
+**Both are gone. The screen sleeps like any phone's, plugged in or not.** Sanctum
+has no always-on clock, no persistent display, and no `isIdleTimerDisabled`
+anywhere in the codebase. If you want a glanceable clock on a nightstand, that's
+the system lock screen's job and a Settings toggle you own — not a surface we
+build and not a mode we manage.
 
-**Decision: auto-lock on, normal sleep. Always-on becomes a charging-only "dock
-mode."** When the device is on power, Sanctum may present the black clock face
-and hold the screen; unplugged, it sleeps like any phone. That's a one-line
-condition on battery state, and it gets you the nightstand behavior *and* a
-phone with a normal battery life. Not either/or.
+What this buys beyond battery:
 
-Note also that on iPhones with a system always-on display, the lock screen still
-shows a 1Hz clock while asleep — the nightstand glance partly works with no
-involvement from us at all.
+- **No dual-mode UI.** The clock face is a screen you open, like every other
+  screen. There is no second rendering path with different rules.
+- **Fewer long-uptime bugs.** The app now backgrounds and suspends regularly
+  instead of running lit for weeks, which retires a whole class of leak, drift
+  and unbounded-cache failures.
+- **One less thing to get wrong on a device you can't easily debug.**
 
 ### What sleeping actually costs
 
@@ -223,7 +226,7 @@ The app's own behavior, no permissions required:
 - **Network batching and keepalive tuning** — covered above; the radio tail is
   ours to manage.
 - **`ProcessInfo.isLowPowerModeEnabled`** — readable, not settable. React to it:
-  stretch poll intervals, drop dock mode, stop non-essential sync.
+  stretch poll intervals, stop non-essential sync.
 - **`ProcessInfo.thermalState`** — back off under thermal pressure rather than
   competing with the system for a throttled SoC.
 - **`UIApplication.backgroundRefreshStatus`** and `NWPathMonitor` (`isExpensive`
@@ -244,7 +247,7 @@ use:
 | **LTE instead of 5G**, or cellular data off entirely | 5G costs real power. If this is a wifi-first device, the whole radio can go. |
 | **Wi-Fi Assist off** | Stops silent, expensive failover to cellular. |
 | **Raise to Wake and Tap to Wake off** | A phone in a pocket lights its screen dozens of times a day for nobody. |
-| **System always-on display off** | We decided the phone sleeps; the lock-screen AOD is pure cost. |
+| **System always-on display** | Your call. Sanctum draws no clock of its own, so if you want a nightstand glance this is where it comes from — Apple's 1Hz implementation, not ours. Off is cheaper. |
 | **Dark Mode forced** | OLED again, and it matches the design anyway. |
 | **Reduce Motion / Reduce Transparency** | Small GPU savings, consistent with the aesthetic. |
 | **Automatic app updates and downloads off** | There is no App Store use. |
@@ -314,7 +317,7 @@ gives 85% of these figures.
 | --- | --- | --- |
 | Deep standby — wifi, Low Power Mode, no background refresh | ~50 mW | **~0.4 %/hr** |
 | Deep standby — cellular, poor signal | up to ~200 mW | ~1.5 %/hr |
-| Dock mode — screen on, true black, minimum brightness, 1 redraw/min | ~400 mW | **~3 %/hr** |
+| Screen on, true black, minimum brightness, static | ~400 mW | **~3 %/hr** |
 | Active use — reading mail or a thread, dark UI, network | ~2 W | **~15 %/hr** |
 | One APNs push wake | ~1 J | ~0.002% — **negligible** |
 
@@ -325,8 +328,7 @@ gives 85% of these figures.
 | **Carried, wifi + cellular, ~1 hr/day screen-on** | 23 hr standby (9%) + 1 hr active (15%) ≈ 25% | **~4 days** |
 | **Carried, wifi only, ~20 min/day screen-on** | 6% + 5% ≈ 11% | **~9 days** |
 | **Heavy day** — poor cellular, lots of Claude streaming | ~60–80% | ~1.5 days |
-| **Unplugged on the nightstand in dock mode** | 8 hr × 3% = **24% overnight** | — |
-| **Docked and plugged in** | n/a | indefinite; see [the plugged-in problem](#the-plugged-in-problem) |
+| **Overnight, asleep on a charger** | n/a | indefinite; see [the plugged-in problem](#the-plugged-in-problem) |
 
 For calibration: run the same model on a normal phone — 4 hours of screen-on time
 and heavier background activity gives ~75%/day, i.e. charging every night. That
@@ -346,10 +348,10 @@ notifications a day is a rounding error. The
 gave up nothing measurable and bought multi-day life. That was the right call and
 this is the arithmetic confirming it.
 
-**3. Dock mode must stay charging-only.** A night of unplugged dock mode costs
-~24% — a quarter of the battery to display a clock nobody is looking at for seven
-of those eight hours. Gating it on charging state isn't a nicety, it's the
-difference between a four-day phone and a two-day one.
+**3. An always-on clock was never worth it.** Leaving the screen lit overnight
+costs ~24% — a quarter of the battery to display a clock nobody looks at for
+seven of those eight hours. Removing it outright is the difference between a
+four-day phone and a two-day one, and it removes a mode rather than adding one.
 
 **4. Cellular signal is the largest variable you don't control.** Standby in poor
 signal is roughly 4× standby on wifi, which alone moves a four-day phone to
@@ -381,8 +383,8 @@ hypothesis each of these is testing:
 
 | State | Target |
 | --- | --- |
-| Night face, min brightness, socket idle | the floor — measure and set the target from it |
-| Day clock / calendar idle | ≤ 2× the night face |
+| Asleep, wifi, occasional push | the floor — measure and set the target from it |
+| Clock or calendar visible, idle, dark | measure; it should be dominated by brightness |
 | Active reading (mail, threads) | unbudgeted, it's bounded by attention |
 | Streaming a Claude response | bounded by the turn |
 | Reconnect storm | **should be impossible** — backoff must be capped and tested |
@@ -392,9 +394,6 @@ a tradeoff; an uncapped retry loop is just a mistake that flattens the battery.
 
 ## Open questions
 
-- **How expensive is dock mode really?** The black idle face is now optional
-  rather than load-bearing, but if it's within a few percent of screen-off it can
-  stay on unplugged too. Measure before deciding.
 - **Cellular at all?** If this phone lives on wifi, disabling cellular data is
   free battery. If it's also the phone that needs to work away from home, no.
   Related to the telephony question in [roadmap](roadmap.md#open-questions).

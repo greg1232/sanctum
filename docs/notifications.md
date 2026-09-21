@@ -23,9 +23,9 @@ That collapses most of the problem:
 
 **APNs is only needed for the configuration where the screen locks** — and we've
 since decided the screen *should* lock. See
-[power](power.md#sleep-and-wake--yes-avoid-the-always-on-display): an always-on
-display quietly turns Sanctum into a stationary appliance, so auto-lock is the
-default and the persistent clock face becomes a charging-only dock mode.
+[power](power.md#sleep-and-wake--the-screen-sleeps-always): an always-on display
+quietly turns Sanctum into a stationary appliance, so the screen sleeps like any
+phone's and Sanctum draws no persistent clock at all.
 
 So push exists. It is much cheaper than this document originally implied: APNs
 token auth means **`sanctumd` is the provider directly** — a `.p8` key and an

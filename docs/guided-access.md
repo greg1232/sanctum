@@ -199,9 +199,11 @@ Document these in the app's own onboarding, not just here.
 - **Home indicator hidden.** The bottom safe-area inset changes. Don't hardcode.
 - **Side-button triple-click is reserved.** Never bind a gesture that trains the
   user to fight it.
-- **Screen may never sleep.** A Guided Access phone on a nightstand is often set
-  to never auto-lock. Assume the UI is *always visible*: true-black night mode,
-  no bright surfaces after dark, no animation that loops forever.
-- **Single session, long-lived.** The app may stay foregrounded for days. Leaks,
-  unbounded caches, and timers that drift all become real bugs rather than
-  theoretical ones. Long-uptime soak testing is part of CI.
+- **The screen sleeps normally.** Sanctum draws no always-on clock and never
+  disables the idle timer; see
+  [power](power.md#sleep-and-wake--the-screen-sleeps-always). Dark surfaces are
+  still the default after dark, for the 3am glance rather than for a display
+  left lit.
+- **Long-lived, but not lit.** The session may last weeks even though the screen
+  doesn't, so leaks, unbounded caches and drifting timers are still real bugs
+  rather than theoretical ones. Long-uptime soak testing stays in CI.

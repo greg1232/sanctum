@@ -18,9 +18,10 @@ is available to us at all.
 
 ## M1 — Clock first
 
-Alarm and timers, AlarmKit + foreground fallback, night clock face. Chosen first
-because it's the highest-reliability bar and the fastest path to "this phone is
-already useful on a nightstand."
+Alarm and timers on AlarmKit, plus the clock face. Chosen first because it's the
+highest-reliability bar and the fastest path to "this phone is already useful on
+a nightstand." AlarmKit is now the only alarm mechanism, so its verification is
+part of the milestone rather than a follow-up.
 
 ## M2 — Calendar
 
