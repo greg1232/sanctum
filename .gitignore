@@ -1,0 +1,74 @@
+# ---- macOS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# ---- Xcode ----
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad/
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.xcworkspace/xcshareddata/swiftpm/Package.resolved
+
+# ---- Swift Package Manager ----
+.build/
+.swiftpm/
+Packages/*/.build/
+.netrc
+
+# ---- CocoaPods / Carthage (not planned, but cheap insurance) ----
+Pods/
+Carthage/Build/
+
+# ---- Fastlane ----
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ---- Secrets & local config ----
+# Never commit signing material, OAuth clients, or sandbox credentials.
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.p8
+*.cer
+*.certSigningRequest
+Secrets.xcconfig
+Local.xcconfig
+.env
+.env.*
+!.env.example
+**/GoogleService-Info.plist
+**/Credentials.plist
+
+# ---- Sandbox service (node/python) ----
+node_modules/
+dist/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- Editors & tooling ----
+.idea/
+*.swp
+.vscode/*
+!.vscode/settings.json.example
+.claude/settings.local.json
