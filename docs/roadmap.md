@@ -94,8 +94,11 @@ otherwise. Probably decided together with telephony.
 **Notes / capture.** Arguably already covered by Claude on the sandbox, which is
 a better scratchpad than a notes app. Worth testing before building anything.
 
-**Pocket money.** Wallet still works under Guided Access, so payments are handled
-by the system. No work needed — confirm this on a real device.
+**Pocket money.** Partly settled: Express Mode keys and transit certainly work,
+authenticated Apple Pay is unverified, and barcode passes like boarding passes
+are genuinely unavailable — see
+[Wallet splits three ways](guided-access.md#wallet-splits-three-ways). No app
+work needed either way; it's a question of what to tell people in onboarding.
 
 ---
 

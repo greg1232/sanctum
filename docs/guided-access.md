@@ -117,8 +117,7 @@ Things that should survive the lockdown untouched, all for the same reason:
 | Still works | Why |
 | --- | --- |
 | Tesla / BLE phone keys | Bluetooth background modes, no UI needed |
-| Car, home, hotel and transit keys in **Wallet** | Express Mode works with the phone locked |
-| Apple Pay | Double-click side button; not blocked by Guided Access |
+| **Express Mode** Wallet items — transit, car, home and hotel keys | The secure element answers the reader with no UI at all. See below. |
 | Apple Watch pairing and connection | Background BLE |
 | AirPods auto-connect | Background BLE |
 | Find My / AirTag network participation | System-level |
@@ -132,6 +131,46 @@ expects you to switch apps to confirm something.
 This is a meaningfully smaller loss than the lockdown first appears to impose.
 Worth stating plainly in the README, because "I'd lose my car key" is the kind of
 objection that kills the idea before anyone checks whether it's true.
+
+### Wallet splits three ways
+
+I'd been treating Wallet as one thing that "still works." It isn't, and the three
+cases have very different confidence levels.
+
+**1. Express Mode — works.** Transit cards, car keys, home and hotel keys.
+Express Mode requires no authentication and no interaction: you hold the phone to
+the reader and the secure element answers. It works with the phone *locked*, and
+on recent devices even in power reserve after the battery dies. Guided Access is
+a UI-layer restriction and has no bearing on the NFC secure element, which sits
+further below the UI than even Bluetooth. This is the
+[screen-not-radios principle](#what-the-lockdown-does-not-touch) at its clearest.
+
+**2. Authenticated Apple Pay — unknown, and I previously asserted otherwise.**
+Paying at a normal retail terminal means double-clicking the side button and
+authenticating, which presents system UI *over* the pinned app. That's exactly
+the kind of thing Guided Access might intercept, and I don't actually know
+whether it does. [Row 15](notifications.md#verification-matrix) asks. Until it's
+answered, treat retail payment as unresolved rather than working.
+
+If it turns out to be blocked, the fallbacks are decent:
+
+- **An Apple Watch pays independently** of the phone's lock state. This keeps
+  coming up — the Watch also potentially solves the
+  [notification glance](notifications.md#background-services-matrix), and it's
+  starting to look less like an accessory and more like the natural complement
+  to a locked-down phone.
+- Exit Guided Access to pay. Triple-click and Face ID is a couple of seconds,
+  just an ugly couple of seconds at a till.
+- Carry a card.
+
+**3. Anything with a barcode — lost.** Boarding passes, event tickets, loyalty
+cards, ID. These need the Wallet app's *screen*, and the lockdown denies other
+apps' UI by definition. No workaround short of exiting Guided Access, which for a
+boarding pass at a gate is genuinely the right move rather than a failure.
+
+This is a real gap and belongs in the same honest list as telephony. It's mild —
+exiting takes seconds and air travel already involves a dozen worse indignities —
+but the docs shouldn't claim Wallet "works" when a third of it doesn't.
 
 ### Configure before you lock
 
@@ -176,7 +215,7 @@ Things Sanctum must either replace or consciously live without:
 | Camera | Only reachable via an in-app picker; no system camera. Photo capture is a feature we'd have to build. |
 | Browser | `SFSafariViewController` still works *inside* Guided Access. This is our one seam to the wider web — deliberately narrow (see below). |
 | Maps / navigation | Not covered. A known gap. |
-| Wallet / Apple Pay | Double-click side button still works; Guided Access does not block it. |
+| Wallet passes with barcodes — boarding passes, tickets, loyalty, ID | **Lost.** They need the Wallet app's screen, which the lockdown denies. See [Wallet](#wallet-splits-three-ways). |
 
 ### The browser seam
 

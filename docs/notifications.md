@@ -110,7 +110,8 @@ the phone can still open your car, so measure it rather than trust it.
 | --- | --- | --- | --- |
 | 13 | Walk up to a Tesla with phone key paired | Does the car unlock? | ? |
 | 14 | Wallet car/home/transit key, Express Mode | Works held to a reader? | ? |
-| 15 | Apple Pay, double-click side button | Sheet appears and completes? | ? |
+| 15 | Apple Pay, double-click side button, retail terminal | Sheet appears and completes? | ? |
+| 15b | Wallet boarding pass or barcode | Reachable at all without exiting? | ? |
 | 16 | Apple Watch | Stays connected, notifications relay to it? | ? |
 | 17 | AirPods | Auto-connect on open? | ? |
 | 18 | CarPlay, wired and wireless | Connects? What shows on the car screen? | ? |
