@@ -7,6 +7,11 @@ shell with honest empty states, CI running tests and snapshot tests. No feature
 logic. Runs on a real phone under Guided Access on day one so the constraints are
 felt early.
 
+Buy the Apple Developer Program on day one — push, AlarmKit and Time Sensitive
+notifications all need it, and seven-day provisioning makes anything else a
+waste of time. Build the provisioning-expiry self-check in the same pass; see
+[building](building.md#the-expiry-landmine).
+
 Wire up MetricKit from the first build — a long-running app should report its
 own power behavior rather than be profiled after the fact. See [power](power.md).
 

@@ -36,6 +36,7 @@ Pre-code. Docs first — see [`docs/`](docs/).
 - [Power](docs/power.md) — what burns it, and what plugging in all night costs
 - [Integrations](docs/integrations.md) — cars, home, anything else: verbs, not dashboards
 - [Guided Access](docs/guided-access.md) — how the phone gets locked down, and what that costs
+- [Building & deploying](docs/building.md) — signing, CI, the sandbox, getting it onto a phone
 - [Roadmap](docs/roadmap.md) — milestones and open questions
 - Features: [calendar](docs/features/calendar.md) · [email](docs/features/email.md) · [claude](docs/features/claude.md) · [messaging](docs/features/messaging.md) · [alarm](docs/features/alarm.md)
 
