@@ -84,6 +84,49 @@ a constraint — but it should be an upgrade path, never a requirement to run.
 Nothing in the app may assume it is locked down at all. Sanctum has to be a
 decent app on an ordinary unsupervised phone, or it can't be developed.
 
+## Session options you must change
+
+⚠️ **Guided Access's defaults are wrong for Sanctum in two ways**, and both were
+found by research rather than assumption. Neither is the default, and missing
+either one silently breaks a decision made elsewhere in these docs.
+
+### 1. Auto-lock is disabled by default — this is the big one
+
+**A Guided Access session keeps the screen on indefinitely.** The system
+Auto-Lock setting stops applying the moment the session starts. This has been
+the behavior since iOS 9 and is well documented by kiosk operators, who hit it
+as battery drain on unattended devices.
+
+That directly contradicts [the decision to let the screen sleep](power.md#sleep-and-wake--the-screen-sleeps-always)
+and would silently reinstate the always-on profile we removed — roughly **24% of
+the battery per night**, with none of the benefit, since Sanctum wouldn't even be
+drawing a clock.
+
+The fix is a setting called **Mirror Display Auto-Lock**, in
+Settings → Accessibility → Guided Access. Turning it on makes the session respect
+the system Auto-Lock. Newer iOS also exposes a **Display Auto-Lock** timeout
+directly in the session's Options sheet.
+
+**Turn this on. Everything in [power](power.md) assumes it.** Confirm the exact
+name and location on iOS 26 — this has moved between versions.
+
+### 2. The side button is disabled by default
+
+In the Options sheet shown before starting a session, hardware buttons can be
+individually enabled, and **Sleep/Wake defaults to off** — the side button is
+simply ignored for the duration.
+
+Turn it on. Two reasons: you get manual lock (press to sleep, rather than waiting
+out the timeout), and it's a precondition for Apple Pay working at all — see
+below.
+
+Note this is configured **per session, per app**, so it has to be re-set every
+time a session is started rather than once globally. On a phone that reboots,
+that's a step you will forget. It's a genuine argument for
+[Autonomous Single App Mode](#b--autonomous-single-app-mode-asam), where the app
+requests its own session and the configuration doesn't depend on someone
+remembering an Options sheet.
+
 ## What the lockdown does *not* touch
 
 The mental model that matters:
@@ -137,20 +180,30 @@ objection that kills the idea before anyone checks whether it's true.
 I'd been treating Wallet as one thing that "still works." It isn't, and the three
 cases have very different confidence levels.
 
-**1. Express Mode — works.** Transit cards, car keys, home and hotel keys.
-Express Mode requires no authentication and no interaction: you hold the phone to
-the reader and the secure element answers. It works with the phone *locked*, and
-on recent devices even in power reserve after the battery dies. Guided Access is
-a UI-layer restriction and has no bearing on the NFC secure element, which sits
-further below the UI than even Bluetooth. This is the
-[screen-not-radios principle](#what-the-lockdown-does-not-touch) at its clearest.
+**1. Express Mode — works, and this one is now confirmed rather than reasoned.**
+Transit cards, car keys, home and hotel keys need no authentication and no
+interaction. Apple's platform security documentation is explicit that the NFC
+controller performs Express Card transactions *independently of iOS* — they work
+in power reserve after the battery is flat, "under the same conditions as when
+iOS is running." If it works when iOS effectively isn't, a UI-layer restriction
+like Guided Access cannot touch it. The
+[screen-not-radios principle](#what-the-lockdown-does-not-touch) at its
+clearest.
 
-**2. Authenticated Apple Pay — unknown, and I previously asserted otherwise.**
-Paying at a normal retail terminal means double-clicking the side button and
-authenticating, which presents system UI *over* the pinned app. That's exactly
-the kind of thing Guided Access might intercept, and I don't actually know
-whether it does. [Row 15](notifications.md#verification-matrix) asks. Until it's
-answered, treat retail payment as unresolved rather than working.
+**2. Authenticated Apple Pay — blocked by default, possibly recoverable.**
+Paying at a retail terminal means double-clicking the side button. But
+[the side button is disabled by default](#2-the-side-button-is-disabled-by-default)
+during a Guided Access session, so with stock options the double-click never
+reaches Wallet. Users hitting this report having to choose between Guided Access
+and Apple Pay.
+
+Enabling Sleep/Wake in Options makes the button live again, which *should*
+restore the double-click — but "the button works" and "double-click summons
+Wallet over a pinned app" are different claims and only the first is confirmed.
+[Row 15](notifications.md#verification-matrix) now tests it with the button
+explicitly enabled. Apple's own suggested workaround for the conflict is
+**AssistiveTouch**, which can trigger the payment confirmation without the
+physical double-click; worth testing as a fallback.
 
 If it turns out to be blocked, the fallbacks are decent:
 
@@ -183,6 +236,10 @@ foreground setup steps that must all happen before the device is pinned:
 - Wallet cards and keys, with Express Mode enabled
 - Apple Watch and AirPods pairing
 - Wifi networks, including any you'll need away from home
+- **Mirror Display Auto-Lock** in Accessibility → Guided Access, and **Sleep/Wake
+  Button** in the session Options — see
+  [session options you must change](#session-options-you-must-change). Both are
+  off by default and both matter.
 - **The VPN to the sandbox** — Tailscale or WireGuard, installed, signed in, and
   set to connect on demand. `sanctumd` is loopback-only, so without this the
   Talk tab can never reach it from cellular or any foreign network, and the
@@ -247,11 +304,12 @@ Document these in the app's own onboarding, not just here.
 - **Home indicator hidden.** The bottom safe-area inset changes. Don't hardcode.
 - **Side-button triple-click is reserved.** Never bind a gesture that trains the
   user to fight it.
-- **The screen sleeps normally.** Sanctum draws no always-on clock and never
-  disables the idle timer; see
-  [power](power.md#sleep-and-wake--the-screen-sleeps-always). Dark surfaces are
-  still the default after dark, for the 3am glance rather than for a display
-  left lit.
+- **The screen sleeps — but only once you've enabled Mirror Display Auto-Lock.**
+  Guided Access ignores the system Auto-Lock by default. Sanctum itself draws no
+  always-on clock and never disables the idle timer, but the app cannot rescue a
+  misconfigured session; see
+  [session options](#session-options-you-must-change). Dark surfaces remain the
+  default after dark, for the 3am glance rather than for a display left lit.
 - **Long-lived, but not lit.** The session may last weeks even though the screen
   doesn't, so leaks, unbounded caches and drifting timers are still real bugs
   rather than theoretical ones. Long-uptime soak testing stays in CI.

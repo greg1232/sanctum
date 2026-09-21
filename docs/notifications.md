@@ -98,6 +98,7 @@ answer next to each row. Until then, treat every one as unknown.
 | 10 | Emergency/WEA test alert | Takes over? (assumed yes) | ? |
 | 11 | Focus mode change | Does it affect Sanctum's own audio? | ? |
 | 12 | App crash or jetsam kill | Does iOS relaunch into Sanctum, or drop to home screen? | ? |
+| 12b | Mirror Display Auto-Lock on, session running | Does the screen actually sleep on schedule? | ? |
 
 ### Background services matrix
 
@@ -110,7 +111,8 @@ the phone can still open your car, so measure it rather than trust it.
 | --- | --- | --- | --- |
 | 13 | Walk up to a Tesla with phone key paired | Does the car unlock? | ? |
 | 14 | Wallet car/home/transit key, Express Mode | Works held to a reader? | ? |
-| 15 | Apple Pay, double-click side button, retail terminal | Sheet appears and completes? | ? |
+| 15 | Apple Pay, double-click, **Sleep/Wake enabled in Options** | Does Wallet appear over the pinned app? (Confirmed blocked with it off.) | ? |
+| 15c | Apple Pay via AssistiveTouch | Apple's suggested workaround — does it complete? | ? |
 | 15b | Wallet boarding pass or barcode | Reachable at all without exiting? | ? |
 | 16 | Apple Watch | Stays connected, notifications relay to it? | ? |
 | 17 | AirPods | Auto-connect on open? | ? |
